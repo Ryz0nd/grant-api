@@ -10,7 +10,7 @@ export interface EmbedChainInfo extends ChainInfo {
   };
 }
 
-export const MAINNET_CHAIN_IDS = {
+export const CHAIN_IDS = {
   CosmosHub: "cosmoshub-4",
   Osmosis: "osmosis-1",
   Secret: "secret-4",
@@ -38,7 +38,7 @@ export const MAINNET_CHAIN_IDS = {
   Stride: "stride-1",
 } as const;
 
-export const MAINNET_CHAIN_NAMES = {
+export const CHAIN_NAMES = {
   CosmosHub: "Cosmos Hub",
   Osmosis: "Osmosis",
   Secret: "Secret Network",
@@ -67,12 +67,12 @@ export const MAINNET_CHAIN_NAMES = {
   MarsProtocol: "Mars Protocol",
 } as const;
 
-export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
+export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-cosmoshub.keplr.app",
     rest: "https://lcd-cosmoshub.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.CosmosHub,
-    chainName: MAINNET_CHAIN_NAMES.CosmosHub,
+    chainId: CHAIN_IDS.CosmosHub,
+    chainName: CHAIN_NAMES.CosmosHub,
     stakeCurrency: TOKEN_CURRENCIES.ATOM,
     bip44: {
       coinType: 118,
@@ -90,8 +90,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-osmosis.keplr.app/",
     rest: "https://lcd-osmosis.keplr.app/",
-    chainId: MAINNET_CHAIN_IDS.Osmosis,
-    chainName: MAINNET_CHAIN_NAMES.Osmosis,
+    chainId: CHAIN_IDS.Osmosis,
+    chainName: CHAIN_NAMES.Osmosis,
     stakeCurrency: TOKEN_CURRENCIES.OSMO,
     bip44: {
       coinType: 118,
@@ -109,8 +109,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-secret.keplr.app",
     rest: "https://lcd-secret.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Secret,
-    chainName: MAINNET_CHAIN_NAMES.Secret,
+    chainId: CHAIN_IDS.Secret,
+    chainName: CHAIN_NAMES.Secret,
     stakeCurrency: TOKEN_CURRENCIES.SCRT,
     bip44: {
       coinType: 529,
@@ -133,8 +133,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-regen.keplr.app",
     rest: "https://lcd-regen.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Regen,
-    chainName: MAINNET_CHAIN_NAMES.Regen,
+    chainId: CHAIN_IDS.Regen,
+    chainName: CHAIN_NAMES.Regen,
     stakeCurrency: TOKEN_CURRENCIES.REGEN,
     bip44: { coinType: 118 },
     bech32Config: Bech32Address.defaultBech32Config("regen"),
@@ -150,8 +150,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-akash.keplr.app",
     rest: "https://lcd-akash.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Akash,
-    chainName: MAINNET_CHAIN_NAMES.Akash,
+    chainId: CHAIN_IDS.Akash,
+    chainName: CHAIN_NAMES.Akash,
     stakeCurrency: TOKEN_CURRENCIES.AKT,
     bip44: {
       coinType: 118,
@@ -169,8 +169,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-sifchain.keplr.app",
     rest: "https://lcd-sifchain.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.SifChain,
-    chainName: MAINNET_CHAIN_NAMES.SifChain,
+    chainId: CHAIN_IDS.SifChain,
+    chainName: CHAIN_NAMES.SifChain,
     stakeCurrency: TOKEN_CURRENCIES.ROWAN,
     bip44: {
       coinType: 118,
@@ -188,8 +188,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-stargaze.keplr.app",
     rest: "https://lcd-stargaze.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Stargaze,
-    chainName: MAINNET_CHAIN_NAMES.Stargaze,
+    chainId: CHAIN_IDS.Stargaze,
+    chainName: CHAIN_NAMES.Stargaze,
     stakeCurrency: TOKEN_CURRENCIES.STARS,
     bip44: {
       coinType: 118,
@@ -207,8 +207,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-sentinel.keplr.app",
     rest: "https://lcd-sentinel.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Sentinel,
-    chainName: MAINNET_CHAIN_NAMES.Sentinel,
+    chainId: CHAIN_IDS.Sentinel,
+    chainName: CHAIN_NAMES.Sentinel,
     stakeCurrency: TOKEN_CURRENCIES.DVPN,
     bip44: { coinType: 118 },
     bech32Config: Bech32Address.defaultBech32Config("sent"),
@@ -224,8 +224,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-persistence.keplr.app",
     rest: "https://lcd-persistence.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Persistence,
-    chainName: MAINNET_CHAIN_NAMES.Persistence,
+    chainId: CHAIN_IDS.Persistence,
+    chainName: CHAIN_NAMES.Persistence,
     stakeCurrency: TOKEN_CURRENCIES.XPRT,
     bip44: {
       coinType: 750,
@@ -243,8 +243,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-kava.keplr.app",
     rest: "https://lcd-kava.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Kava,
-    chainName: MAINNET_CHAIN_NAMES.Kava,
+    chainId: CHAIN_IDS.Kava,
+    chainName: CHAIN_NAMES.Kava,
     stakeCurrency: TOKEN_CURRENCIES.KAVA,
     bip44: {
       coinType: 459,
@@ -262,8 +262,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-crypto-org.keplr.app/",
     rest: "https://lcd-crypto-org.keplr.app/",
-    chainId: MAINNET_CHAIN_IDS.CRO,
-    chainName: MAINNET_CHAIN_NAMES.CRO,
+    chainId: CHAIN_IDS.CRO,
+    chainName: CHAIN_NAMES.CRO,
     stakeCurrency: TOKEN_CURRENCIES.CRO,
     bip44: {
       coinType: 394,
@@ -288,8 +288,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-iris.keplr.app",
     rest: "https://lcd-iris.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Iris,
-    chainName: MAINNET_CHAIN_NAMES.Iris,
+    chainId: CHAIN_IDS.Iris,
+    chainName: CHAIN_NAMES.Iris,
     stakeCurrency: TOKEN_CURRENCIES.IRIS,
     bip44: { coinType: 566 },
     bech32Config: {
@@ -312,8 +312,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-agoric.keplr.app",
     rest: "https://lcd-agoric.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Agoric,
-    chainName: MAINNET_CHAIN_NAMES.Agoric,
+    chainId: CHAIN_IDS.Agoric,
+    chainName: CHAIN_NAMES.Agoric,
     stakeCurrency: TOKEN_CURRENCIES.BLD,
     bip44: {
       coinType: 564,
@@ -331,8 +331,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-axelar.keplr.app",
     rest: "https://lcd-axelar.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Axelar,
-    chainName: MAINNET_CHAIN_NAMES.Axelar,
+    chainId: CHAIN_IDS.Axelar,
+    chainName: CHAIN_NAMES.Axelar,
     stakeCurrency: TOKEN_CURRENCIES.AXL,
     bip44: {
       coinType: 118,
@@ -370,8 +370,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-certik.keplr.app",
     rest: "https://lcd-certik.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Certic,
-    chainName: MAINNET_CHAIN_NAMES.Certic,
+    chainId: CHAIN_IDS.Certic,
+    chainName: CHAIN_NAMES.Certic,
     stakeCurrency: TOKEN_CURRENCIES.CTK,
     bip44: { coinType: 118 },
     bech32Config: Bech32Address.defaultBech32Config("certik"),
@@ -387,8 +387,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-impacthub.keplr.app",
     rest: "https://lcd-impacthub.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Ixo,
-    chainName: MAINNET_CHAIN_NAMES.Ixo,
+    chainId: CHAIN_IDS.Ixo,
+    chainName: CHAIN_NAMES.Ixo,
     stakeCurrency: TOKEN_CURRENCIES.IXO,
     bip44: {
       coinType: 118,
@@ -406,8 +406,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-emoney.keplr.app",
     rest: "https://lcd-emoney.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Emoney,
-    chainName: MAINNET_CHAIN_NAMES.Emoney,
+    chainId: CHAIN_IDS.Emoney,
+    chainName: CHAIN_NAMES.Emoney,
     stakeCurrency: TOKEN_CURRENCIES.NGM,
     bip44: {
       coinType: 118,
@@ -425,8 +425,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-juno.keplr.app",
     rest: "https://lcd-juno.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Juno,
-    chainName: MAINNET_CHAIN_NAMES.Juno,
+    chainId: CHAIN_IDS.Juno,
+    chainName: CHAIN_NAMES.Juno,
     stakeCurrency: TOKEN_CURRENCIES.JUNO,
     bip44: {
       coinType: 118,
@@ -455,8 +455,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-sommelier.keplr.app",
     rest: "https://lcd-sommelier.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Sommelier,
-    chainName: MAINNET_CHAIN_NAMES.Sommelier,
+    chainId: CHAIN_IDS.Sommelier,
+    chainName: CHAIN_NAMES.Sommelier,
     stakeCurrency: TOKEN_CURRENCIES.SOMM,
     bip44: {
       coinType: 118,
@@ -469,8 +469,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-umee.keplr.app",
     rest: "https://lcd-umee.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Umee,
-    chainName: MAINNET_CHAIN_NAMES.Umee,
+    chainId: CHAIN_IDS.Umee,
+    chainName: CHAIN_NAMES.Umee,
     stakeCurrency: TOKEN_CURRENCIES.UMEE,
     bip44: {
       coinType: 118,
@@ -488,8 +488,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-evmos.keplr.app",
     rest: "https://lcd-evmos.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Evmos,
-    chainName: MAINNET_CHAIN_NAMES.Evmos,
+    chainId: CHAIN_IDS.Evmos,
+    chainName: CHAIN_NAMES.Evmos,
     stakeCurrency: TOKEN_CURRENCIES.EVMOS,
     bip44: {
       coinType: 60,
@@ -507,8 +507,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-cyber.keplr.app",
     rest: "https://lcd-cyber.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Bostrom,
-    chainName: MAINNET_CHAIN_NAMES.Bostrom,
+    chainId: CHAIN_IDS.Bostrom,
+    chainName: CHAIN_NAMES.Bostrom,
     stakeCurrency: TOKEN_CURRENCIES.BOOT,
     bip44: { coinType: 118 },
     bech32Config: Bech32Address.defaultBech32Config("bostrom"),
@@ -530,8 +530,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-iov.keplr.app",
     rest: "https://lcd-iov.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Starname,
-    chainName: MAINNET_CHAIN_NAMES.Starname,
+    chainId: CHAIN_IDS.Starname,
+    chainName: CHAIN_NAMES.Starname,
     stakeCurrency: TOKEN_CURRENCIES.IOV,
     bip44: {
       coinType: 234,
@@ -549,8 +549,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-gravity-bridge.keplr.app",
     rest: "https://lcd-gravity-bridge.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Gravity,
-    chainName: MAINNET_CHAIN_NAMES.Gravity,
+    chainId: CHAIN_IDS.Gravity,
+    chainName: CHAIN_NAMES.Gravity,
     stakeCurrency: TOKEN_CURRENCIES.GRAV,
     bip44: {
       coinType: 118,
@@ -576,8 +576,8 @@ export const MAINNET_EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
   {
     rpc: "https://rpc-stride.keplr.app",
     rest: "https://lcd-stride.keplr.app",
-    chainId: MAINNET_CHAIN_IDS.Stride,
-    chainName: MAINNET_CHAIN_NAMES.Stride,
+    chainId: CHAIN_IDS.Stride,
+    chainName: CHAIN_NAMES.Stride,
     stakeCurrency: TOKEN_CURRENCIES.STRD,
     bip44: {
       coinType: 118,

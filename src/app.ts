@@ -14,7 +14,6 @@ const app: FastifyPluginAsync<AppOptions> = async (
   opts
 ): Promise<void> => {
   // Place here your custom code!
-  void fastify.register(require("fastify-axios"));
 
   // Do not touch the following lines
 

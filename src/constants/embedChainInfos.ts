@@ -88,8 +88,8 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
     features: ["ibc-transfer", "ibc-go"],
   },
   {
-    rpc: "https://rpc-osmosis.keplr.app/",
-    rest: "https://lcd-osmosis.keplr.app/",
+    rpc: "https://rpc-osmosis.keplr.app",
+    rest: "https://lcd-osmosis.keplr.app",
     chainId: CHAIN_IDS.Osmosis,
     chainName: CHAIN_NAMES.Osmosis,
     stakeCurrency: TOKEN_CURRENCIES.OSMO,
@@ -260,8 +260,8 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
     },
   },
   {
-    rpc: "https://rpc-crypto-org.keplr.app/",
-    rest: "https://lcd-crypto-org.keplr.app/",
+    rpc: "https://rpc-crypto-org.keplr.app",
+    rest: "https://lcd-crypto-org.keplr.app",
     chainId: CHAIN_IDS.CRO,
     chainName: CHAIN_NAMES.CRO,
     stakeCurrency: TOKEN_CURRENCIES.CRO,

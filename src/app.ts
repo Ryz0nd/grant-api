@@ -1,6 +1,7 @@
 import { join } from "path";
 import AutoLoad, { AutoloadPluginOptions } from "@fastify/autoload";
 import { FastifyPluginAsync } from "fastify";
+import stakeAllV1 from "./routes/stakeAllV1";
 
 export type AppOptions = {
   // Place your custom options for app below here.
@@ -14,6 +15,18 @@ const app: FastifyPluginAsync<AppOptions> = async (
   opts
 ): Promise<void> => {
   // Place here your custom code!
+  // await fastify.register(cors, {
+  //   origin: (origin, cb) => {
+  //     const hostname = new URL(origin).hostname;
+  //     if (hostname === "localhost") {
+  //       //  Request from localhost will pass
+  //       cb(null, true);
+  //       return;
+  //     }
+  //     // Generate an error on other origins, disabling access
+  //     cb(new Error("Not allowed"), false);
+  //   },
+  // });
 
   // Do not touch the following lines
 
@@ -25,12 +38,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
     options: opts,
   });
 
-  // This loads all plugins defined in routes
-  // define your routes in one of these
-  void fastify.register(AutoLoad, {
-    dir: join(__dirname, "routes"),
-    options: opts,
-  });
+  void fastify.register(stakeAllV1);
 };
 
 export default app;

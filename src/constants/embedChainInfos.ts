@@ -67,7 +67,11 @@ export const CHAIN_NAMES = {
   MarsProtocol: "Mars Protocol",
 } as const;
 
-export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
+interface CustomChainInfo extends EmbedChainInfo {
+  canEstimateGas: boolean;
+}
+
+export const EMBED_CHAIN_INFOS: CustomChainInfo[] = [
   {
     rpc: "https://rpc-cosmoshub.keplr.app",
     rest: "https://lcd-cosmoshub.keplr.app",
@@ -86,6 +90,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.04,
     },
     features: ["ibc-transfer", "ibc-go"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-osmosis.keplr.app",
@@ -105,6 +110,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.04,
     },
     features: ["ibc-transfer", "ibc-go", "cosmwasm"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-secret.keplr.app",
@@ -129,6 +135,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.25,
     },
     features: ["secretwasm", "ibc-go", "ibc-transfer"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-regen.keplr.app",
@@ -146,6 +153,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.04,
     },
     features: ["ibc-transfer", "ibc-go"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-akash.keplr.app",
@@ -165,6 +173,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.04,
     },
     features: ["ibc-transfer"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-sifchain.keplr.app",
@@ -184,6 +193,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 2000000000000,
     },
     features: [],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-stargaze.keplr.app",
@@ -203,6 +213,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.04,
     },
     features: ["ibc-transfer", "ibc-go", "cosmwasm", "wasmd_0.24+"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-sentinel.keplr.app",
@@ -220,6 +231,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.4,
     },
     features: ["ibc-transfer"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-persistence.keplr.app",
@@ -239,6 +251,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.04,
     },
     features: ["ibc-transfer", "ibc-go"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-kava.keplr.app",
@@ -258,6 +271,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       average: 0.1,
       high: 0.25,
     },
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-crypto-org.keplr.app",
@@ -284,6 +298,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.04,
     },
     features: ["ibc-transfer"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-iris.keplr.app",
@@ -308,6 +323,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.4,
     },
     features: [],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-agoric.keplr.app",
@@ -327,6 +343,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0,
     },
     features: ["ibc-go"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-axelar.keplr.app",
@@ -366,6 +383,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.1,
     },
     features: ["ibc-transfer", "ibc-go"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-certik.keplr.app",
@@ -383,6 +401,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.04,
     },
     features: [],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-impacthub.keplr.app",
@@ -402,6 +421,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.04,
     },
     features: ["ibc-transfer"],
+    canEstimateGas: false,
   },
   {
     rpc: "https://rpc-emoney.keplr.app",
@@ -421,6 +441,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 1,
     },
     features: ["ibc-transfer"],
+    canEstimateGas: false,
   },
   {
     rpc: "https://rpc-juno.keplr.app",
@@ -451,6 +472,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.004,
     },
     features: ["ibc-transfer", "ibc-go", "cosmwasm", "wasmd_0.24+"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-sommelier.keplr.app",
@@ -465,6 +487,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
     currencies: [TOKEN_CURRENCIES.SOMM],
     feeCurrencies: [TOKEN_CURRENCIES.SOMM],
     features: ["ibc-transfer", "ibc-go"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-umee.keplr.app",
@@ -484,6 +507,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.04,
     },
     features: ["ibc-transfer", "ibc-go"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-evmos.keplr.app",
@@ -503,6 +527,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 40000000000,
     },
     features: ["ibc-transfer", "ibc-go", "eth-address-gen", "eth-key-sign"],
+    canEstimateGas: false,
   },
   {
     rpc: "https://rpc-cyber.keplr.app",
@@ -526,6 +551,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.01,
     },
     features: ["ibc-transfer", "cosmwasm"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-iov.keplr.app",
@@ -545,6 +571,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 3,
     },
     features: ["ibc-transfer", "cosmwasm", "ibc-go"],
+    canEstimateGas: false,
   },
   {
     rpc: "https://rpc-gravity-bridge.keplr.app",
@@ -572,6 +599,7 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.04,
     },
     features: ["cosmwasm", "ibc-transfer", "ibc-go", "wasmd_0.24+"],
+    canEstimateGas: true,
   },
   {
     rpc: "https://rpc-stride.keplr.app",
@@ -591,5 +619,6 @@ export const EMBED_CHAIN_INFOS: EmbedChainInfo[] = [
       high: 0.04,
     },
     features: ["ibc-transfer", "ibc-go"],
+    canEstimateGas: true,
   },
 ];

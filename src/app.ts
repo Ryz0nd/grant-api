@@ -38,7 +38,9 @@ const app: FastifyPluginAsync<AppOptions> = async (
     options: opts,
   });
 
-  void fastify.register(stakeAllV1);
+  void fastify.register(stakeAllV1, {
+    logLevel: "info",
+  });
 };
 
 export default app;

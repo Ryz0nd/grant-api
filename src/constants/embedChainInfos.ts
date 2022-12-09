@@ -67,7 +67,7 @@ export const CHAIN_NAMES = {
   MarsProtocol: "Mars Protocol",
 } as const;
 
-interface CustomChainInfo extends EmbedChainInfo {
+export interface CustomChainInfo extends EmbedChainInfo {
   canEstimateGas: boolean;
 }
 

@@ -4,10 +4,19 @@ import { EMBED_CHAIN_INFOS } from "../constants/embedChainInfos";
 import { GRANTABLE_CHAINS } from "../constants/grantableChains";
 import { getBech32Address } from "../utils/getBech32Address";
 import { MSG_EXECUTE, MSG_STAKE_AUTHORIZATION } from "../constants/msgs";
-import { GRANTEE_BECH32_ADDRESSES } from "../constants/granteeAddresses";
-import { DirectSecp256k1HdWallet, EncodeObject } from "@cosmjs/proto-signing";
-import { SigningStargateClient } from "@cosmjs/stargate";
+import {
+  DirectSecp256k1HdWallet,
+  EncodeObject,
+  makeSignDoc,
+} from "@cosmjs/proto-signing";
+import { PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
+
+import {
+  // assertIsDeliverTxSuccess,
+  SigningStargateClient,
+} from "@cosmjs/stargate";
 import { Dec } from "@keplr-wallet/unit";
+import { stringToPath } from "@cosmjs/crypto";
 
 import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import { MsgExec } from "@keplr-wallet/proto-types/cosmos/authz/v1beta1/tx";
@@ -23,11 +32,9 @@ import {
   TxRaw,
 } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
-import {
-  DefaultGasPriceStep,
-  DEFAULT_GAS_ADJUSTMENT_NUM,
-} from "../constants/gas";
-import { StdFee } from "@keplr-wallet/types";
+import { DefaultGasPriceStep } from "../constants/gas";
+import dayjs from "dayjs";
+import { getSimulatedStdFee } from "../utils/getStdFee";
 
 interface StakingAuthorizationGrant {
   authorization: {
@@ -78,13 +85,22 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
       return GRANTABLE_CHAINS.includes(chainInfo.chainName);
     });
 
-    const wallet = await DirectSecp256k1HdWallet.fromMnemonic(
-      process.env.MNEMONIC as string
-    );
-
     const stakeAllResult = await Promise.all<StakeAllResult>(
       grantableChainInfos.map(async (chainInfo) => {
         try {
+          const { getGrants, getDelegationTotalRewards, getAccountByAddress } =
+            getCosmosQuery(chainInfo.rest);
+
+          const wallet = await DirectSecp256k1HdWallet.fromMnemonic(
+            process.env.MNEMONIC as string,
+            {
+              prefix: chainInfo.bech32Config.bech32PrefixAccAddr,
+              hdPaths: [
+                stringToPath(`m/44'/${chainInfo.bip44.coinType}'/0'/0/0`),
+              ],
+            }
+          );
+
           const pubKey = allPubKey?.[String(chainInfo.bip44.coinType)];
 
           const address = allAddress?.[chainInfo.chainId];
@@ -98,30 +114,20 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
             };
           }
 
-          const bech32Address =
+          const granterAddress =
             address ??
             (await getBech32Address(
               pubKey ?? "",
               chainInfo.bech32Config.bech32PrefixAccAddr
             ));
 
-          const { getGrants, getDelegationTotalRewards, simulateTx } =
-            getCosmosQuery(chainInfo.rest);
-
-          // grantee address 확인
-          const granteeAddress = GRANTEE_BECH32_ADDRESSES[chainInfo.chainName];
-          if (granteeAddress === undefined) {
-            return {
-              [chainInfo.chainId]: {
-                status: "error",
-                message: "Grantee address is not defined",
-              },
-            };
-          }
+          // grantee 주소 가져오기
+          const [granteeAccount] = await wallet.getAccounts();
+          const granteeAddress = granteeAccount.address;
 
           // grant 정보 가져오기
           const { grants } = await getGrants({
-            granter: bech32Address,
+            granter: granterAddress,
             grantee: granteeAddress,
           });
 
@@ -133,7 +139,8 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
                 grant.authorization.authorization_type ===
                   authorizationTypeToJSON(
                     AuthorizationType.AUTHORIZATION_TYPE_DELEGATE
-                  )
+                  ) &&
+                dayjs().isBefore(grant.expiration)
             );
 
           const isValidGrant = requiredGrantMessage !== undefined;
@@ -148,8 +155,8 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
           }
 
           // reward 확인
-          const { total } = await getDelegationTotalRewards({
-            delegatorAddress: bech32Address,
+          const { total, rewards } = await getDelegationTotalRewards({
+            delegatorAddress: granterAddress,
           });
 
           const totalStakeCurrencyRewards = total.find(
@@ -176,30 +183,42 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
               },
             };
           }
+          
 
           // msg 생성
-          const delegateMsgs = validatorAllowList.address.map(
-            (validatorAddress) => {
-              const sharedAmount =
-                Number(totalStakeCurrencyRewards.amount) /
-                validatorAllowList.address.length;
-              const amount = sharedAmount.toFixed(18);
-              const denom = totalStakeCurrencyRewards.denom;
+          const delegateMsgs = rewards.reduce((acc, reward) => {
+            const isGrantValidator =
+              validatorAllowList.address.find(
+                (address) => address === reward.validator_address
+              ) !== undefined;
 
-              const delegateMsg = {
-                typeUrl: "/cosmos.staking.v1beta1.MsgDelegate",
-                value: MsgDelegate.encode({
-                  delegatorAddress: bech32Address,
-                  validatorAddress,
-                  amount: {
-                    amount,
-                    denom,
-                  },
-                }).finish(),
-              };
-              return delegateMsg;
+            if (!isGrantValidator) {
+              return [...acc];
             }
-          );
+
+            const rewardAmount = reward.reward.find(
+              (item) => item.denom === chainInfo.stakeCurrency.coinMinimalDenom
+            );
+
+            if (rewardAmount === undefined) {
+              return [...acc];
+            }
+
+            const amount: Coin = {
+              amount: Math.floor(Number(rewardAmount.amount)).toString(),
+              denom: chainInfo.stakeCurrency.coinMinimalDenom,
+            };
+
+            const delegateMsg = {
+              typeUrl: "/cosmos.staking.v1beta1.MsgDelegate",
+              value: MsgDelegate.encode({
+                delegatorAddress: granterAddress,
+                validatorAddress: reward.validator_address,
+                amount,
+              }).finish(),
+            };
+            return [...acc, delegateMsg];
+          }, [] as EncodeObject[]);
 
           const protoMsgs: EncodeObject[] = [
             {
@@ -211,72 +230,28 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
             },
           ];
 
+          // account 정보 가져오기
+          const { account } = await getAccountByAddress({
+            address: granterAddress,
+          });
+
           // gas fee 확인
           const memo = "Keplr Authz";
 
-          const gasPriceStep =
-            chainInfo.gasPriceStep?.average ?? DefaultGasPriceStep.average;
+          const simulatedStdFee = await getSimulatedStdFee({
+            chainInfo,
+            account,
+            memo,
+            protoMsgs,
+          });
 
-          let stdFee: StdFee;
+          const defaultStdFee = () => {
+            const delegateMsgCount = delegateMsgs.length;
+            const expectedGasWanted = 250000 * delegateMsgCount;
+            const gasPriceStep =
+              chainInfo.gasPriceStep?.average ?? DefaultGasPriceStep.average;
 
-          if (chainInfo.canEstimateGas) {
-            const unsignedTx = TxRaw.encode({
-              bodyBytes: TxBody.encode(
-                TxBody.fromPartial<{}>({
-                  messages: protoMsgs,
-                  memo,
-                })
-              ).finish(),
-              authInfoBytes: AuthInfo.encode({
-                signerInfos: [
-                  SignerInfo.fromPartial({
-                    modeInfo: {
-                      single: {
-                        mode: SignMode.SIGN_MODE_DIRECT,
-                      },
-                      multi: undefined,
-                    },
-                    sequence: "1",
-                  }),
-                ],
-                fee: Fee.fromPartial<{}>({
-                  amount: [],
-                }),
-              }).finish(),
-              signatures: [new Uint8Array(64)],
-            }).finish();
-
-            const simulatedTx = await simulateTx({
-              body: {
-                tx_bytes: Buffer.from(unsignedTx).toString("base64"),
-              },
-            });
-
-            const gasUsed = parseInt(simulatedTx.gas_info.gas_used);
-
-            const gasWantedDec = new Dec(
-              gasUsed * DEFAULT_GAS_ADJUSTMENT_NUM
-            ).roundUpDec();
-
-            const gasWanted = gasWantedDec.toString(0);
-
-            const gasPriceAmountString = gasWantedDec
-              .mul(new Dec(gasPriceStep))
-              .roundUpDec()
-              .toString(0);
-
-            const gasPrice: Coin = {
-              denom: chainInfo.stakeCurrency.coinMinimalDenom,
-              amount: gasPriceAmountString,
-            };
-            stdFee = {
-              gas: gasWanted,
-              amount: [gasPrice],
-            };
-          } else {
-            const expectedGasWanted = 300000;
-
-            stdFee = {
+            return {
               gas: new Dec(expectedGasWanted).toString(0),
               amount: [
                 {
@@ -287,26 +262,77 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
                 },
               ],
             };
-          }
+          };
 
-          // tx 실행
+          const stdFee = simulatedStdFee ?? defaultStdFee();
+
+          // signDoc 생성
+          const bodyBytes = TxBody.encode(
+            TxBody.fromPartial({
+              messages: protoMsgs,
+              memo,
+            })
+          ).finish();
+
+          const authInfoBytes = AuthInfo.encode({
+            signerInfos: [
+              SignerInfo.fromPartial({
+                publicKey: {
+                  typeUrl: "/cosmos.crypto.secp256k1.PubKey",
+                  value: PubKey.encode({
+                    key: Buffer.from(account.pub_key.key, "base64"),
+                  }).finish(),
+                },
+                modeInfo: {
+                  single: {
+                    mode: SignMode.SIGN_MODE_DIRECT,
+                  },
+                  multi: undefined,
+                },
+                sequence: account.sequence,
+              }),
+            ],
+            fee: Fee.fromPartial<{}>({
+              amount: stdFee.amount,
+              gasLimit: stdFee.gas,
+            }),
+          }).finish();
+
+          const signDoc = makeSignDoc(
+            bodyBytes,
+            authInfoBytes,
+            chainInfo.chainId,
+            Number(account.account_number)
+          );
+
+          const { signature, signed } = await wallet.signDirect(
+            granteeAddress,
+            signDoc
+          );
+
+          const protoSignedTx = TxRaw.encode({
+            bodyBytes: signed.bodyBytes,
+            authInfoBytes: signed.authInfoBytes,
+            signatures: [Buffer.from(signature.signature, "base64")],
+          }).finish();
+
+          // tx broadcast
           const client = await SigningStargateClient.connectWithSigner(
             chainInfo.rpc,
             wallet
           );
 
-          const tx = await client.signAndBroadcast(
-            bech32Address,
-            protoMsgs,
-            stdFee,
-            memo
-          );
+          console.log(client, protoSignedTx)
+          // const result = await client.broadcastTx(protoSignedTx);
+
+          // assertIsDeliverTxSuccess(result);
 
           return {
             [chainInfo.chainId]: {
               status: "success",
-              txHash: tx.transactionHash,
+              // txHash: result.transactionHash,
               reward: totalStakeCurrencyRewards,
+              txHash: "hi",
             },
           };
         } catch (e) {

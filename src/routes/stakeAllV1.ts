@@ -1,5 +1,9 @@
 import { FastifyPluginAsync } from "fastify";
-import { Coin, getCosmosQuery } from "@many-things/cosmos-query";
+import {
+  AccountResponse,
+  Coin,
+  DelegationTotalRewardsResponse,
+} from "@many-things/cosmos-query";
 import { EMBED_CHAIN_INFOS } from "../constants/embedChainInfos";
 import { GRANTABLE_CHAINS } from "../constants/grantableChains";
 import { getBech32Address } from "../utils/getBech32Address";
@@ -11,10 +15,6 @@ import {
 } from "@cosmjs/proto-signing";
 import { PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
 
-import {
-  // assertIsDeliverTxSuccess,
-  SigningStargateClient,
-} from "@cosmjs/stargate";
 import { Dec } from "@keplr-wallet/unit";
 import { stringToPath } from "@cosmjs/crypto";
 
@@ -33,8 +33,10 @@ import {
 } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { DefaultGasPriceStep } from "../constants/gas";
-import dayjs from "dayjs";
 import { getSimulatedStdFee } from "../utils/getStdFee";
+import axios from "axios";
+import { Grant } from "@many-things/cosmos-query/dist/apis/cosmos/authz/types";
+import { TxResponse } from "cosmjs-types/cosmos/base/abci/v1beta1/abci";
 
 interface StakingAuthorizationGrant {
   authorization: {
@@ -63,7 +65,7 @@ interface StakeAllResult {
   [chain: string]:
     | {
         status: "success";
-        txHash: string;
+        tx: TxResponse;
         reward: Coin;
       }
     | {
@@ -88,8 +90,9 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     const stakeAllResult = await Promise.all<StakeAllResult>(
       grantableChainInfos.map(async (chainInfo) => {
         try {
-          const { getGrants, getDelegationTotalRewards, getAccountByAddress } =
-            getCosmosQuery(chainInfo.rest);
+          const instance = axios.create({
+            baseURL: chainInfo.rest,
+          });
 
           const wallet = await DirectSecp256k1HdWallet.fromMnemonic(
             process.env.MNEMONIC as string,
@@ -126,10 +129,17 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
           const granteeAddress = granteeAccount.address;
 
           // grant 정보 가져오기
-          const { grants } = await getGrants({
-            granter: granterAddress,
-            grantee: granteeAddress,
-          });
+          const {
+            data: { grants },
+          } = await instance.get<{ grants: Grant[] }>(
+            "/cosmos/authz/v1beta1/grants",
+            {
+              params: {
+                granter: granterAddress,
+                grantee: granteeAddress,
+              },
+            }
+          );
 
           // delegation Grant 확인
           const requiredGrantMessage: StakingAuthorizationGrant | undefined =
@@ -140,7 +150,7 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
                   authorizationTypeToJSON(
                     AuthorizationType.AUTHORIZATION_TYPE_DELEGATE
                   ) &&
-                dayjs().isBefore(grant.expiration)
+                !grant.expiration.startsWith("0001")
             );
 
           const isValidGrant = requiredGrantMessage !== undefined;
@@ -155,9 +165,11 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
           }
 
           // reward 확인
-          const { total, rewards } = await getDelegationTotalRewards({
-            delegatorAddress: granterAddress,
-          });
+          const {
+            data: { total, rewards },
+          } = await instance.get<DelegationTotalRewardsResponse>(
+            `/cosmos/distribution/v1beta1/delegators/${granterAddress}/rewards`
+          );
 
           const totalStakeCurrencyRewards = total.find(
             (item) => item.denom === chainInfo.stakeCurrency.coinMinimalDenom
@@ -183,7 +195,6 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
               },
             };
           }
-          
 
           // msg 생성
           const delegateMsgs = rewards.reduce((acc, reward) => {
@@ -231,9 +242,11 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
           ];
 
           // account 정보 가져오기
-          const { account } = await getAccountByAddress({
-            address: granterAddress,
-          });
+          const {
+            data: { account },
+          } = await instance.get<AccountResponse>(
+            `/cosmos/auth/v1beta1/accounts/${granteeAddress}`
+          );
 
           // gas fee 확인
           const memo = "Keplr Authz";
@@ -274,13 +287,25 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
             })
           ).finish();
 
+          const getPublicKeyTypeUrl = () => {
+            if (!chainInfo.features?.includes("eth-key-sign")) {
+              return "/cosmos.crypto.secp256k1.PubKey";
+            }
+
+            if (chainInfo.chainId.startsWith("injective")) {
+              return "/injective.crypto.v1beta1.ethsecp256k1.PubKey";
+            }
+
+            return "/ethermint.crypto.v1.ethsecp256k1.PubKey";
+          };
+
           const authInfoBytes = AuthInfo.encode({
             signerInfos: [
               SignerInfo.fromPartial({
                 publicKey: {
-                  typeUrl: "/cosmos.crypto.secp256k1.PubKey",
+                  typeUrl: getPublicKeyTypeUrl(),
                   value: PubKey.encode({
-                    key: Buffer.from(account.pub_key.key, "base64"),
+                    key: granteeAccount.pubkey,
                   }).finish(),
                 },
                 modeInfo: {
@@ -317,22 +342,20 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
           }).finish();
 
           // tx broadcast
-          const client = await SigningStargateClient.connectWithSigner(
-            chainInfo.rpc,
-            wallet
-          );
+          const { data: result } = await instance.post<{
+            tx_response: TxResponse;
+          }>("/cosmos/tx/v1beta1/txs", {
+            tx_bytes: Buffer.from(protoSignedTx).toString("base64"),
+            mode: "BROADCAST_MODE_SYNC",
+          });
 
-          console.log(client, protoSignedTx)
-          // const result = await client.broadcastTx(protoSignedTx);
-
-          // assertIsDeliverTxSuccess(result);
+          const txResponse = result["tx_response"];
 
           return {
             [chainInfo.chainId]: {
               status: "success",
-              // txHash: result.transactionHash,
+              tx: txResponse,
               reward: totalStakeCurrencyRewards,
-              txHash: "hi",
             },
           };
         } catch (e) {

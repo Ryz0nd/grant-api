@@ -1,8 +1,9 @@
 import { EncodeObject } from "@cosmjs/proto-signing";
 import { StdFee } from "@cosmjs/stargate";
 import { Dec } from "@keplr-wallet/unit";
-import { getCosmosQuery } from "@many-things/cosmos-query";
+import { SimulateTxResponse } from "@many-things/cosmos-query";
 import { Account } from "@many-things/cosmos-query/dist/apis/cosmos/auth/types";
+import axios from "axios";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import {
@@ -31,8 +32,6 @@ export const getSimulatedStdFee = async ({
 }): Promise<StdFee | null> => {
   try {
     if (chainInfo.canEstimateGas) {
-      const { simulateTx } = getCosmosQuery(chainInfo.rest);
-
       const unsignedTx = TxRaw.encode({
         bodyBytes: TxBody.encode(
           TxBody.fromPartial<{}>({
@@ -59,13 +58,17 @@ export const getSimulatedStdFee = async ({
         signatures: [new Uint8Array(64)],
       }).finish();
 
-      const simulatedTx = await simulateTx({
-        body: {
-          tx_bytes: Buffer.from(unsignedTx).toString("base64"),
-        },
-      });
+      const {
+        data: { gas_info },
+      } = await axios.post<SimulateTxResponse>(
+        "/cosmos/tx/v1beta1/simulate",
+        { tx_bytes: Buffer.from(unsignedTx).toString("base64") },
+        {
+          baseURL: chainInfo.rest,
+        }
+      );
 
-      const gasUsed = parseInt(simulatedTx.gas_info.gas_used);
+      const gasUsed = parseInt(gas_info.gas_used);
 
       const gasWantedDec = new Dec(
         gasUsed * DEFAULT_GAS_ADJUSTMENT_NUM

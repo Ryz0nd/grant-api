@@ -373,6 +373,15 @@
     long "^4.0.0"
     secretjs "0.17.7"
 
+"@keplr-wallet/types@0.11.21":
+  version "0.11.21"
+  resolved "https://registry.yarnpkg.com/@keplr-wallet/types/-/types-0.11.21.tgz#42527d05d39178f469a619f01df1f539844d8d97"
+  integrity sha512-oSv8SBBxTQz3hahOWVZmrb3ll0kXVuiUfqnM9q6aWGNOqSiXg8etKQd5c6hSFEYX8iuaAsHa48/NZA0cn+TAgA==
+  dependencies:
+    axios "^0.27.2"
+    long "^4.0.0"
+    secretjs "0.17.7"
+
 "@keplr-wallet/types@^0.11.16":
   version "0.11.16"
   resolved "https://registry.yarnpkg.com/@keplr-wallet/types/-/types-0.11.16.tgz#5080c3f01f89b607ee7167c32d2e59a6d0f614ea"
@@ -388,6 +397,15 @@
   integrity sha512-cVOLidZjMA8BnHIylLbiVuJwoOUbkwAhuHXOAwFBCFe8NTvlRVv6mS1BaYbDP8k8eJnw8Ms3MLIQ4D6wgxiyRw==
   dependencies:
     "@keplr-wallet/types" "0.11.17"
+    big-integer "^1.6.48"
+    utility-types "^3.10.0"
+
+"@keplr-wallet/unit@^0.11.21":
+  version "0.11.21"
+  resolved "https://registry.yarnpkg.com/@keplr-wallet/unit/-/unit-0.11.21.tgz#845ae7df30e5f069c53b6de3889329611bcbdd70"
+  integrity sha512-YGqLLXjVSFDBXBTuZ4ETYy0HG5nXlB+Zrw4b/eso2MGQa9O+yc14TyP6xu3ni/XlWeMVhsPAydbmNqI52Ew9sQ==
+  dependencies:
+    "@keplr-wallet/types" "0.11.21"
     big-integer "^1.6.48"
     utility-types "^3.10.0"
 
@@ -608,10 +626,10 @@ axios@^0.27.2:
     follow-redirects "^1.14.9"
     form-data "^4.0.0"
 
-axios@^1.1.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.1.3.tgz#8274250dada2edf53814ed7db644b9c2866c1e35"
-  integrity sha512-00tXVRwKx/FZr/IDVFt4C+f9FYairX517WoGCL6dpOntqLkZofjhu43F/Xl44UOpqa+9sLFDrG/XAnFsUYgkDA==
+axios@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.2.1.tgz#44cf04a3c9f0c2252ebd85975361c026cb9f864a"
+  integrity sha512-I88cFiGu9ryt/tfVEi4kX2SITsvDddTajXTOFmt2uK1ZVA8LytjtdeyefdQWEf5PU8w+4SSJDoYnggflB5tW4A==
   dependencies:
     follow-redirects "^1.15.0"
     form-data "^4.0.0"

@@ -14,11 +14,11 @@ export const GRANTABLE_CHAINS: string[] = [
   CHAIN_NAMES.Kava,
   CHAIN_NAMES.CRO,
   CHAIN_NAMES.Agoric,
-  CHAIN_NAMES.Certic,
+  CHAIN_NAMES.Shentu,
   CHAIN_NAMES.Juno,
   CHAIN_NAMES.Umee,
   CHAIN_NAMES.Evmos,
   CHAIN_NAMES.Bostrom,
   CHAIN_NAMES.Gravity,
-  CHAIN_NAMES.Stride,
+  //   CHAIN_NAMES.Stride,
 ];

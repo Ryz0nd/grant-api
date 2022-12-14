@@ -25,8 +25,8 @@ export const CHAIN_IDS = {
   Iris: "irishub-1",
   Agoric: "agoric-3",
   Axelar: "axelar-dojo-1",
-  Certic: "shentu-2.2",
-  Ixo: "impacthub-3",
+  Shentu: "shentu-2.2",
+  Ixo: "ixo-4",
   Emoney: "emoney-3",
   Juno: "juno-1",
   Sommelier: "sommelier-3",
@@ -36,6 +36,7 @@ export const CHAIN_IDS = {
   Starname: "iov-mainnet-ibc",
   Gravity: "gravity-bridge-3",
   Stride: "stride-1",
+  Injective: "injective-1",
 } as const;
 
 export const CHAIN_NAMES = {
@@ -53,7 +54,7 @@ export const CHAIN_NAMES = {
   Iris: "IRISnet",
   Agoric: "Agoric",
   Axelar: "Axelar",
-  Certic: "Certik",
+  Shentu: "Shentu",
   Ixo: "ixo",
   Emoney: "e-Money",
   Juno: "Juno",
@@ -64,7 +65,7 @@ export const CHAIN_NAMES = {
   Starname: "Starname",
   Gravity: "Gravity Bridge",
   Stride: "Stride",
-  MarsProtocol: "Mars Protocol",
+  Injective: "Injective",
 } as const;
 
 export interface CustomChainInfo extends EmbedChainInfo {
@@ -240,8 +241,13 @@ export const EMBED_CHAIN_INFOS: CustomChainInfo[] = [
     chainName: CHAIN_NAMES.Persistence,
     stakeCurrency: TOKEN_CURRENCIES.XPRT,
     bip44: {
-      coinType: 750,
+      coinType: 118,
     },
+    alternativeBIP44s: [
+      {
+        coinType: 750,
+      },
+    ],
     bech32Config: Bech32Address.defaultBech32Config("persistence"),
     currencies: [TOKEN_CURRENCIES.XPRT],
     feeCurrencies: [TOKEN_CURRENCIES.XPRT],
@@ -388,8 +394,8 @@ export const EMBED_CHAIN_INFOS: CustomChainInfo[] = [
   {
     rpc: "https://rpc-certik.keplr.app",
     rest: "https://lcd-certik.keplr.app",
-    chainId: CHAIN_IDS.Certic,
-    chainName: CHAIN_NAMES.Certic,
+    chainId: CHAIN_IDS.Shentu,
+    chainName: CHAIN_NAMES.Shentu,
     stakeCurrency: TOKEN_CURRENCIES.CTK,
     bip44: { coinType: 118 },
     bech32Config: Bech32Address.defaultBech32Config("certik"),
@@ -619,6 +625,26 @@ export const EMBED_CHAIN_INFOS: CustomChainInfo[] = [
       high: 0.04,
     },
     features: ["ibc-transfer", "ibc-go"],
+    canEstimateGas: true,
+  },
+  {
+    rpc: "https://rpc-injective.keplr.app",
+    rest: "https://lcd-injective.keplr.app",
+    chainId: CHAIN_IDS.Injective,
+    chainName: CHAIN_NAMES.Injective,
+    stakeCurrency: TOKEN_CURRENCIES.INJ,
+    bip44: {
+      coinType: 60,
+    },
+    bech32Config: Bech32Address.defaultBech32Config("inj"),
+    currencies: [TOKEN_CURRENCIES.INJ],
+    feeCurrencies: [TOKEN_CURRENCIES.INJ],
+    gasPriceStep: {
+      low: 5000000000,
+      average: 25000000000,
+      high: 50000000000,
+    },
+    features: ["ibc-transfer", "ibc-go", "eth-address-gen", "eth-key-sign"],
     canEstimateGas: true,
   },
 ];

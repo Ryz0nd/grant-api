@@ -1,10 +1,13 @@
-import { EncodeObject } from "@cosmjs/proto-signing";
-import { StdFee } from "@cosmjs/stargate";
+import type { EncodeObject } from "@cosmjs/proto-signing";
+import type { StdFee } from "@cosmjs/stargate";
 import { Dec } from "@keplr-wallet/unit";
-import { SimulateTxResponse } from "@many-things/cosmos-query";
-import { Account } from "@many-things/cosmos-query/dist/apis/cosmos/auth/types";
+import type { SimulateTxResponse } from "@many-things/cosmos-query";
+import type {
+  Account,
+  EthereumAccount,
+} from "@many-things/cosmos-query/dist/apis/cosmos/auth/types";
 import axios from "axios";
-import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
+import type { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import {
   AuthInfo,
@@ -18,6 +21,7 @@ import {
   DefaultGasPriceStep,
   DEFAULT_GAS_ADJUSTMENT_NUM,
 } from "../constants/gas";
+import { isEthAccount } from "./isEthAccount";
 
 export const getSimulatedStdFee = async ({
   chainInfo,
@@ -26,12 +30,15 @@ export const getSimulatedStdFee = async ({
   memo,
 }: {
   chainInfo: CustomChainInfo;
-  account: Account;
+  account: Account | EthereumAccount;
   protoMsgs: EncodeObject[];
   memo: string;
 }): Promise<StdFee | null> => {
   try {
     if (chainInfo.canEstimateGas) {
+      const sequence = isEthAccount(account)
+        ? account.base_account.sequence
+        : account.sequence;
       const unsignedTx = TxRaw.encode({
         bodyBytes: TxBody.encode(
           TxBody.fromPartial<{}>({
@@ -48,7 +55,7 @@ export const getSimulatedStdFee = async ({
                 },
                 multi: undefined,
               },
-              sequence: account.sequence,
+              sequence,
             }),
           ],
           fee: Fee.fromPartial<{}>({

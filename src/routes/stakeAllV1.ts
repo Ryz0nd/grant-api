@@ -76,7 +76,7 @@ interface StakeAllResult {
       };
 }
 
-const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
+const stakeAllV1: FastifyPluginAsync = async (fastify): Promise<void> => {
   fastify.post<StakeAllBody>("/v1/stake-all", async function (request) {
     const allPubKey = request.body.pubKey;
     const allAddress = request.body.address;
@@ -267,9 +267,9 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
           const defaultStdFee = (): StdFee => {
             const delegateMsgCount = delegateMsgs.length;
-            const expectedGasWanted = 250000 * delegateMsgCount;
+            const expectedGasWanted = 350000 * delegateMsgCount;
             const gasPriceStep =
-              chainInfo.gasPriceStep?.average ?? DefaultGasPriceStep.average;
+              chainInfo.gasPriceStep?.low ?? DefaultGasPriceStep.average;
 
             return {
               gas: new Dec(expectedGasWanted).toString(0),

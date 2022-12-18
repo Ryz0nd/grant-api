@@ -84,7 +84,7 @@ export const getSimulatedStdFee = async ({
       const gasWanted = gasWantedDec.toString(0);
 
       const gasPriceStep =
-        chainInfo.gasPriceStep?.average ?? DefaultGasPriceStep.average;
+        chainInfo.gasPriceStep?.low ?? DefaultGasPriceStep.average;
 
       const gasPriceAmountString = gasWantedDec
         .mul(new Dec(gasPriceStep))

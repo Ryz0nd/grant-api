@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { TxResponse } from "cosmjs-types/cosmos/base/abci/v1beta1/abci";
+import type { TxResponse } from "@many-things/cosmos-query/dist/apis/cosmos/tx/types";
 
 export const broadcastTx = async (
   protoSignedTx: Uint8Array,

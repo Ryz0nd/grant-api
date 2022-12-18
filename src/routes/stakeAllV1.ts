@@ -7,7 +7,11 @@ import {
 } from "@cosmjs/crypto";
 import { Secp256k1 } from "@cosmjs/crypto";
 import { type EncodeObject } from "@cosmjs/proto-signing";
-import type { StdFee } from "@cosmjs/stargate";
+import {
+  assertIsDeliverTxSuccess,
+  DeliverTxResponse,
+  StdFee,
+} from "@cosmjs/stargate";
 import { MsgExec } from "@keplr-wallet/proto-types/cosmos/authz/v1beta1/tx";
 import { Dec } from "@keplr-wallet/unit";
 import type {
@@ -16,8 +20,8 @@ import type {
   DelegationTotalRewardsResponse,
 } from "@many-things/cosmos-query";
 import type { Grant } from "@many-things/cosmos-query/dist/apis/cosmos/authz/types";
+import { TxResponse } from "@many-things/cosmos-query/dist/apis/cosmos/tx/types";
 import axios from "axios";
-import type { TxResponse } from "cosmjs-types/cosmos/base/abci/v1beta1/abci";
 import {
   AuthorizationType,
   authorizationTypeToJSON,
@@ -303,6 +307,7 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
           // tx broadcast
           const txResponse = await broadcastTx(protoSignedTx, chainInfo.rest);
 
+          assertIsDeliverTxSuccess(txResponse as unknown as DeliverTxResponse);
           return {
             [chainInfo.chainId]: {
               status: "success",

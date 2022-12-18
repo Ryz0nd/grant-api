@@ -1,42 +1,40 @@
-import { FastifyPluginAsync } from "fastify";
 import {
+  Bip39,
+  EnglishMnemonic,
+  Slip10,
+  Slip10Curve,
+  stringToPath,
+} from "@cosmjs/crypto";
+import { Secp256k1 } from "@cosmjs/crypto";
+import { type EncodeObject } from "@cosmjs/proto-signing";
+import type { StdFee } from "@cosmjs/stargate";
+import { MsgExec } from "@keplr-wallet/proto-types/cosmos/authz/v1beta1/tx";
+import { Dec } from "@keplr-wallet/unit";
+import type {
   AccountResponse,
   Coin,
   DelegationTotalRewardsResponse,
 } from "@many-things/cosmos-query";
-import { EMBED_CHAIN_INFOS } from "../constants/embedChainInfos";
-import { GRANTABLE_CHAINS } from "../constants/grantableChains";
-import { getBech32Address } from "../utils/getBech32Address";
-import { MSG_EXECUTE, MSG_STAKE_AUTHORIZATION } from "../constants/msgs";
-import {
-  DirectSecp256k1HdWallet,
-  EncodeObject,
-  makeSignDoc,
-} from "@cosmjs/proto-signing";
-import { PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
-
-import { Dec } from "@keplr-wallet/unit";
-import { stringToPath } from "@cosmjs/crypto";
-
-import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
-import { MsgExec } from "@keplr-wallet/proto-types/cosmos/authz/v1beta1/tx";
+import type { Grant } from "@many-things/cosmos-query/dist/apis/cosmos/authz/types";
+import axios from "axios";
+import type { TxResponse } from "cosmjs-types/cosmos/base/abci/v1beta1/abci";
 import {
   AuthorizationType,
   authorizationTypeToJSON,
 } from "cosmjs-types/cosmos/staking/v1beta1/authz";
-import {
-  AuthInfo,
-  Fee,
-  SignerInfo,
-  TxBody,
-  TxRaw,
-} from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
+import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+import type { FastifyPluginAsync } from "fastify";
+
+import { EMBED_CHAIN_INFOS } from "../constants/embedChainInfos";
 import { DefaultGasPriceStep } from "../constants/gas";
+import { GRANTABLE_CHAINS } from "../constants/grantableChains";
+import { GRANTEE_BECH32_ADDRESSES } from "../constants/granteeAddresses";
+import { MSG_EXECUTE, MSG_STAKE_AUTHORIZATION } from "../constants/msgs";
+import { broadcastTx } from "../utils/broadcastTx";
+import { getBech32Address } from "../utils/getBech32Address";
 import { getSimulatedStdFee } from "../utils/getStdFee";
-import axios from "axios";
-import { Grant } from "@many-things/cosmos-query/dist/apis/cosmos/authz/types";
-import { TxResponse } from "cosmjs-types/cosmos/base/abci/v1beta1/abci";
+import { isEthAccount } from "../utils/isEthAccount";
+import { signDirect } from "../utils/signDirect";
 
 interface StakingAuthorizationGrant {
   authorization: {
@@ -94,21 +92,11 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
             baseURL: chainInfo.rest,
           });
 
-          const wallet = await DirectSecp256k1HdWallet.fromMnemonic(
-            process.env.MNEMONIC as string,
-            {
-              prefix: chainInfo.bech32Config.bech32PrefixAccAddr,
-              hdPaths: [
-                stringToPath(`m/44'/${chainInfo.bip44.coinType}'/0'/0/0`),
-              ],
-            }
-          );
-
-          const pubKey = allPubKey?.[String(chainInfo.bip44.coinType)];
+          const granterPubKey = allPubKey?.[String(chainInfo.bip44.coinType)];
 
           const address = allAddress?.[chainInfo.chainId];
 
-          if (pubKey === undefined && address === undefined) {
+          if (granterPubKey === undefined && address === undefined) {
             return {
               [chainInfo.chainId]: {
                 status: "error",
@@ -120,13 +108,28 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
           const granterAddress =
             address ??
             (await getBech32Address(
-              pubKey ?? "",
+              granterPubKey ?? "",
               chainInfo.bech32Config.bech32PrefixAccAddr
             ));
 
           // grantee 주소 가져오기
-          const [granteeAccount] = await wallet.getAccounts();
-          const granteeAddress = granteeAccount.address;
+          const granteeAddress = GRANTEE_BECH32_ADDRESSES[chainInfo.chainName];
+
+          // grantee 정보 가져오기
+          const mnemonicChecked = new EnglishMnemonic(
+            process.env.MNEMONIC as string
+          );
+          const seed = await Bip39.mnemonicToSeed(mnemonicChecked);
+          const hdPath = stringToPath(
+            `m/44'/${chainInfo.bip44.coinType}'/0'/0/0`
+          );
+          const { privkey: granteePrivateKey } = Slip10.derivePath(
+            Slip10Curve.Secp256k1,
+            seed,
+            hdPath
+          );
+          const { pubkey } = await Secp256k1.makeKeypair(granteePrivateKey);
+          const granteePublicKey = Secp256k1.compressPubkey(pubkey);
 
           // grant 정보 가져오기
           const {
@@ -258,7 +261,7 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
             protoMsgs,
           });
 
-          const defaultStdFee = () => {
+          const defaultStdFee = (): StdFee => {
             const delegateMsgCount = delegateMsgs.length;
             const expectedGasWanted = 250000 * delegateMsgCount;
             const gasPriceStep =
@@ -276,80 +279,29 @@ const stakeAllV1: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
               ],
             };
           };
-
           const stdFee = simulatedStdFee ?? defaultStdFee();
 
           // signDoc 생성
-          const bodyBytes = TxBody.encode(
-            TxBody.fromPartial({
-              messages: protoMsgs,
-              memo,
-            })
-          ).finish();
+          const sequence = isEthAccount(account)
+            ? account.base_account.sequence
+            : account.sequence;
+          const accountNumber = isEthAccount(account)
+            ? account.base_account.account_number
+            : account.account_number;
 
-          const getPublicKeyTypeUrl = () => {
-            if (!chainInfo.features?.includes("eth-key-sign")) {
-              return "/cosmos.crypto.secp256k1.PubKey";
-            }
-
-            if (chainInfo.chainId.startsWith("injective")) {
-              return "/injective.crypto.v1beta1.ethsecp256k1.PubKey";
-            }
-
-            return "/ethermint.crypto.v1.ethsecp256k1.PubKey";
-          };
-
-          const authInfoBytes = AuthInfo.encode({
-            signerInfos: [
-              SignerInfo.fromPartial({
-                publicKey: {
-                  typeUrl: getPublicKeyTypeUrl(),
-                  value: PubKey.encode({
-                    key: granteeAccount.pubkey,
-                  }).finish(),
-                },
-                modeInfo: {
-                  single: {
-                    mode: SignMode.SIGN_MODE_DIRECT,
-                  },
-                  multi: undefined,
-                },
-                sequence: account.sequence,
-              }),
-            ],
-            fee: Fee.fromPartial<{}>({
-              amount: stdFee.amount,
-              gasLimit: stdFee.gas,
-            }),
-          }).finish();
-
-          const signDoc = makeSignDoc(
-            bodyBytes,
-            authInfoBytes,
-            chainInfo.chainId,
-            Number(account.account_number)
-          );
-
-          const { signature, signed } = await wallet.signDirect(
-            granteeAddress,
-            signDoc
-          );
-
-          const protoSignedTx = TxRaw.encode({
-            bodyBytes: signed.bodyBytes,
-            authInfoBytes: signed.authInfoBytes,
-            signatures: [Buffer.from(signature.signature, "base64")],
-          }).finish();
-
-          // tx broadcast
-          const { data: result } = await instance.post<{
-            tx_response: TxResponse;
-          }>("/cosmos/tx/v1beta1/txs", {
-            tx_bytes: Buffer.from(protoSignedTx).toString("base64"),
-            mode: "BROADCAST_MODE_SYNC",
+          const protoSignedTx = await signDirect({
+            protoMsgs,
+            memo,
+            accountNumber,
+            sequence,
+            chainInfo,
+            stdFee,
+            signerPubKey: granteePublicKey,
+            signerPrivKey: granteePrivateKey,
           });
 
-          const txResponse = result["tx_response"];
+          // tx broadcast
+          const txResponse = await broadcastTx(protoSignedTx, chainInfo.rest);
 
           return {
             [chainInfo.chainId]: {

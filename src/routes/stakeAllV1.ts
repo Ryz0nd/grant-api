@@ -1,12 +1,4 @@
-import {
-  Bip39,
-  EnglishMnemonic,
-  Slip10,
-  Slip10Curve,
-  stringToPath,
-} from "@cosmjs/crypto";
-import { Secp256k1 } from "@cosmjs/crypto";
-import { type EncodeObject } from "@cosmjs/proto-signing";
+import type { EncodeObject } from "@cosmjs/proto-signing";
 import { MsgExec } from "@keplr-wallet/proto-types/cosmos/authz/v1beta1/tx";
 import { Dec } from "@keplr-wallet/unit";
 import type {
@@ -15,7 +7,7 @@ import type {
   DelegationTotalRewardsResponse,
 } from "@many-things/cosmos-query";
 import type { Grant } from "@many-things/cosmos-query/dist/apis/cosmos/authz/types";
-import { TxResponse } from "@many-things/cosmos-query/dist/apis/cosmos/tx/types";
+import type { TxResponse } from "@many-things/cosmos-query/dist/apis/cosmos/tx/types";
 import axios from "axios";
 import {
   AuthorizationType,
@@ -30,6 +22,7 @@ import { GRANTABLE_CHAINS } from "../constants/grantableChains";
 import { GRANTEE_BECH32_ADDRESSES } from "../constants/granteeAddresses";
 import { MSG_EXECUTE, MSG_STAKE_AUTHORIZATION } from "../constants/msgs";
 import { broadcastTx } from "../utils/broadcastTx";
+import { getAccount } from "../utils/getAccount";
 import { getBech32Address } from "../utils/getBech32Address";
 import { getSimulatedStdFee } from "../utils/getStdFee";
 import { isEthAccount } from "../utils/isEthAccount";
@@ -104,6 +97,7 @@ const stakeAllV1: FastifyPluginAsync = async (fastify): Promise<void> => {
             };
           }
 
+          const granteeAddress = GRANTEE_BECH32_ADDRESSES[chainInfo.chainName];
           const granterAddress =
             address ??
             (await getBech32Address(
@@ -111,24 +105,12 @@ const stakeAllV1: FastifyPluginAsync = async (fastify): Promise<void> => {
               chainInfo.bech32Config.bech32PrefixAccAddr
             ));
 
-          // grantee 주소 가져오기
-          const granteeAddress = GRANTEE_BECH32_ADDRESSES[chainInfo.chainName];
-
           // grantee 정보 가져오기
-          const mnemonicChecked = new EnglishMnemonic(
-            process.env.MNEMONIC as string
-          );
-          const seed = await Bip39.mnemonicToSeed(mnemonicChecked);
-          const hdPath = stringToPath(
-            `m/44'/${chainInfo.bip44.coinType}'/0'/0/0`
-          );
-          const { privkey: granteePrivateKey } = Slip10.derivePath(
-            Slip10Curve.Secp256k1,
-            seed,
-            hdPath
-          );
-          const { pubkey } = await Secp256k1.makeKeypair(granteePrivateKey);
-          const granteePublicKey = Secp256k1.compressPubkey(pubkey);
+          const { publicKey: granteePublicKey, privateKey: granteePrivateKey } =
+            await getAccount(
+              process.env.MNEMONIC as string,
+              chainInfo.bip44.coinType
+            );
 
           // grant 정보 가져오기
           const {

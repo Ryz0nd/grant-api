@@ -316,10 +316,10 @@
     big-integer "^1.6.48"
     utility-types "^3.10.0"
 
-"@many-things/cosmos-query@^0.1.26":
-  version "0.1.26"
-  resolved "https://registry.yarnpkg.com/@many-things/cosmos-query/-/cosmos-query-0.1.26.tgz#e4c05e683f337f43e20cd72ed76d55c1e82d132e"
-  integrity sha512-P9eI/vCa02ySbIWqK08CTaiNYQlsD3AiwJKD/McTI6IkHPsCR0OUyZshErRicu3l1Gv3K9+IetKtyJQaScOY2A==
+"@many-things/cosmos-query@^0.1.27":
+  version "0.1.27"
+  resolved "https://registry.yarnpkg.com/@many-things/cosmos-query/-/cosmos-query-0.1.27.tgz#15b73682f5df899d892dc75c79d9a0bed222dd93"
+  integrity sha512-Ovtth/h0prbu3IxRmcQO/EMly7PnQSD876SeuekOq9gDVpxLhZW/ZQ/arxntS0kMqCIuw8ppu1X3QEeWQF8ATw==
   dependencies:
     axios "^0.27.2"
     buffer "^6.0.3"

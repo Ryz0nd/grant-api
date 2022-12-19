@@ -7,7 +7,7 @@ import type {
   DelegationTotalRewardsResponse,
 } from "@many-things/cosmos-query";
 import type { TxResponse } from "@many-things/cosmos-query/dist/apis/cosmos/tx/types";
-import { isEthAccount } from "@many-things/cosmos-query/dist/utils";
+import { isEthAccount } from "@many-things/cosmos-query";
 import axios from "axios";
 import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import type { FastifyPluginAsync } from "fastify";

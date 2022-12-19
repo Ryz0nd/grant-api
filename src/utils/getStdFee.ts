@@ -5,7 +5,7 @@ import type {
   Account,
   EthereumAccount,
 } from "@many-things/cosmos-query/dist/apis/cosmos/auth/types";
-import { isEthAccount } from "@many-things/cosmos-query/dist/utils";
+import { isEthAccount } from "@many-things/cosmos-query";
 import axios from "axios";
 import type { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";

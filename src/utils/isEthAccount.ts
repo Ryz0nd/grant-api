@@ -6,5 +6,8 @@ import type {
 export const isEthAccount = (
   account: Account | EthereumAccount
 ): account is EthereumAccount => {
-  return account["@type"] === "/ethermint.types.v1.EthAccount";
+  return [
+    "/ethermint.types.v1.EthAccount",
+    "/injective.types.v1beta1.EthAccount",
+  ].includes(account["@type"]);
 };

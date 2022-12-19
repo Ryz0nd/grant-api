@@ -22,4 +22,5 @@ export const GRANTEE_BECH32_ADDRESSES: Record<string, string> = {
   [CHAIN_NAMES.Bostrom]: "bostrom1wuy97alha699xlp0dv4z6y3fp30slchec52lf7",
   [CHAIN_NAMES.Gravity]: "gravity1wuy97alha699xlp0dv4z6y3fp30slchelhv5j3",
   [CHAIN_NAMES.Stride]: "stride1wuy97alha699xlp0dv4z6y3fp30slchecv7sr4",
+  [CHAIN_NAMES.Injective]: "inj1pq4xyvn23xvaasr3lts92taleurj7wwpsf96rk"
 };

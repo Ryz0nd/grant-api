@@ -21,4 +21,5 @@ export const GRANTABLE_CHAINS: string[] = [
   CHAIN_NAMES.Bostrom,
   CHAIN_NAMES.Gravity,
   //   CHAIN_NAMES.Stride,
+  CHAIN_NAMES.Injective,
 ];

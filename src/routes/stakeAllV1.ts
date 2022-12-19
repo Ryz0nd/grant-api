@@ -134,6 +134,15 @@ const stakeAllV1: FastifyPluginAsync = async (fastify): Promise<void> => {
             return [...acc, delegateMsg];
           }, [] as EncodeObject[]);
 
+          if (delegateMsgs.length === 0) {
+            return {
+              [chainInfo.chainId]: {
+                status: "error",
+                message: "No messages",
+              },
+            };
+          }
+
           const protoMsgs: EncodeObject[] = [
             {
               typeUrl: MSG_EXECUTE,

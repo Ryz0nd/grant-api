@@ -7,7 +7,6 @@ import {
 } from "@cosmjs/crypto";
 import { Secp256k1 } from "@cosmjs/crypto";
 import { type EncodeObject } from "@cosmjs/proto-signing";
-import { StdFee } from "@cosmjs/stargate";
 import { MsgExec } from "@keplr-wallet/proto-types/cosmos/authz/v1beta1/tx";
 import { Dec } from "@keplr-wallet/unit";
 import type {
@@ -261,7 +260,7 @@ const stakeAllV1: FastifyPluginAsync = async (fastify): Promise<void> => {
             protoMsgs,
           });
 
-          const defaultStdFee = (): StdFee => {
+          const defaultStdFee = () => {
             const delegateMsgCount = delegateMsgs.length;
             const expectedGasWanted = 350000 * delegateMsgCount;
             const gasPriceStep =

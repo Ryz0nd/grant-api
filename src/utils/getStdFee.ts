@@ -1,5 +1,4 @@
 import type { EncodeObject } from "@cosmjs/proto-signing";
-import type { StdFee } from "@cosmjs/stargate";
 import { Dec } from "@keplr-wallet/unit";
 import type { SimulateTxResponse } from "@many-things/cosmos-query";
 import type {
@@ -33,7 +32,10 @@ export const getSimulatedStdFee = async ({
   account: Account | EthereumAccount;
   protoMsgs: EncodeObject[];
   memo: string;
-}): Promise<StdFee | null> => {
+}): Promise<{
+  amount: Coin[];
+  gas: string;
+} | null> => {
   try {
     if (chainInfo.canEstimateGas) {
       const sequence = isEthAccount(account)

@@ -1,11 +1,11 @@
+import { encodeSecp256k1Signature } from "@cosmjs/amino";
 import { keccak256, Secp256k1, sha256 } from "@cosmjs/crypto";
 import {
   type EncodeObject,
   makeSignBytes,
   makeSignDoc,
 } from "@cosmjs/proto-signing";
-import type { StdFee } from "@cosmjs/stargate";
-import { encodeSecp256k1Signature } from "@keplr-wallet/cosmos";
+import type { Coin } from "@many-things/cosmos-query";
 import { PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import {
@@ -33,7 +33,10 @@ export const signDirect = async ({
   chainInfo: EmbedChainInfo;
   accountNumber: string;
   sequence: string;
-  stdFee: StdFee;
+  stdFee: {
+    amount: Coin[];
+    gas: string;
+  };
   signerPubKey: Uint8Array;
   signerPrivKey: Uint8Array;
 }) => {

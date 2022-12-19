@@ -37,6 +37,7 @@ export const CHAIN_IDS = {
   Gravity: "gravity-bridge-3",
   Stride: "stride-1",
   Injective: "injective-1",
+  QuickSilver: "quicksilver-1",
 } as const;
 
 export const CHAIN_NAMES = {
@@ -66,6 +67,7 @@ export const CHAIN_NAMES = {
   Gravity: "Gravity Bridge",
   Stride: "Stride",
   Injective: "Injective",
+  QuickSilver: "Quicksilver",
 } as const;
 
 export interface CustomChainInfo extends EmbedChainInfo {
@@ -645,6 +647,26 @@ export const EMBED_CHAIN_INFOS: CustomChainInfo[] = [
       high: 50000000000,
     },
     features: ["ibc-transfer", "ibc-go", "eth-address-gen", "eth-key-sign"],
+    canEstimateGas: true,
+  },
+  {
+    rpc: "https://rpc-quicksilver.keplr.app",
+    rest: "https://lcd-quicksilver.keplr.app",
+    chainId: CHAIN_IDS.QuickSilver,
+    chainName: CHAIN_NAMES.QuickSilver,
+    stakeCurrency: TOKEN_CURRENCIES.QCK,
+    bip44: {
+      coinType: 118,
+    },
+    bech32Config: Bech32Address.defaultBech32Config("quick"),
+    currencies: [TOKEN_CURRENCIES.QCK],
+    feeCurrencies: [TOKEN_CURRENCIES.QCK],
+    gasPriceStep: {
+      low: 0.0001,
+      average: 0.0001,
+      high: 0.00025,
+    },
+    features: [],
     canEstimateGas: true,
   },
 ];

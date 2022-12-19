@@ -6,14 +6,9 @@ import type {
   Coin,
   DelegationTotalRewardsResponse,
 } from "@many-things/cosmos-query";
-import type { Grant } from "@many-things/cosmos-query/dist/apis/cosmos/authz/types";
 import type { TxResponse } from "@many-things/cosmos-query/dist/apis/cosmos/tx/types";
 import { isEthAccount } from "@many-things/cosmos-query/dist/utils";
 import axios from "axios";
-import {
-  AuthorizationType,
-  authorizationTypeToJSON,
-} from "cosmjs-types/cosmos/staking/v1beta1/authz";
 import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import type { FastifyPluginAsync } from "fastify";
 
@@ -21,23 +16,12 @@ import { EMBED_CHAIN_INFOS } from "../constants/embedChainInfos";
 import { DefaultGasPriceStep } from "../constants/gas";
 import { GRANTABLE_CHAINS } from "../constants/grantableChains";
 import { GRANTEE_BECH32_ADDRESSES } from "../constants/granteeAddresses";
-import { MSG_EXECUTE, MSG_STAKE_AUTHORIZATION } from "../constants/msgs";
+import { MSG_EXECUTE } from "../constants/msgs";
 import { broadcastTx } from "../utils/broadcastTx";
 import { getAccount } from "../utils/getAccount";
 import { getBech32Address } from "../utils/getBech32Address";
 import { getSimulatedStdFee } from "../utils/getStdFee";
 import { signDirect } from "../utils/signDirect";
-interface StakingAuthorizationGrant {
-  authorization: {
-    "@type": string;
-    max_tokens?: Coin | null;
-    allow_list?: {
-      address: string[];
-    };
-    authorization_type?: string;
-  };
-  expiration: string;
-}
 
 interface StakeAllBody {
   Body: {
@@ -104,49 +88,6 @@ const stakeAllV1: FastifyPluginAsync = async (fastify): Promise<void> => {
               chainInfo.bech32Config.bech32PrefixAccAddr
             ));
 
-          // grantee account 불러오기
-          const { publicKey: granteePublicKey, privateKey: granteePrivateKey } =
-            await getAccount(
-              process.env.MNEMONIC as string,
-              chainInfo.bip44.coinType
-            );
-
-          // grant 정보 가져오기
-          const {
-            data: { grants },
-          } = await instance.get<{ grants: Grant[] }>(
-            "/cosmos/authz/v1beta1/grants",
-            {
-              params: {
-                granter: granterAddress,
-                grantee: granteeAddress,
-              },
-            }
-          );
-
-          // delegation Grant 확인
-          const requiredGrantMessage: StakingAuthorizationGrant | undefined =
-            grants.find(
-              (grant: StakingAuthorizationGrant) =>
-                grant.authorization["@type"] === MSG_STAKE_AUTHORIZATION &&
-                grant.authorization.authorization_type ===
-                  authorizationTypeToJSON(
-                    AuthorizationType.AUTHORIZATION_TYPE_DELEGATE
-                  ) &&
-                !grant.expiration.startsWith("0001")
-            );
-
-          const isValidGrant = requiredGrantMessage !== undefined;
-
-          if (!isValidGrant) {
-            return {
-              [chainInfo.chainId]: {
-                status: "error",
-                message: "No delegation grant",
-              },
-            };
-          }
-
           // reward 확인
           const {
             data: { total, rewards },
@@ -166,35 +107,14 @@ const stakeAllV1: FastifyPluginAsync = async (fastify): Promise<void> => {
               },
             };
           }
-          // validator allowance 확인
-          const validatorAllowList =
-            requiredGrantMessage.authorization.allow_list;
-
-          if (validatorAllowList === undefined) {
-            return {
-              [chainInfo.chainId]: {
-                status: "error",
-                message: "Allow list not provided",
-              },
-            };
-          }
 
           // msg 생성
           const delegateMsgs = rewards.reduce((acc, reward) => {
-            const isGrantValidator =
-              validatorAllowList.address.find(
-                (address) => address === reward.validator_address
-              ) !== undefined;
-
-            if (!isGrantValidator) {
-              return [...acc];
-            }
-
             const rewardAmount = reward.reward.find(
               (item) => item.denom === chainInfo.stakeCurrency.coinMinimalDenom
             );
 
-            if (rewardAmount === undefined) {
+            if (rewardAmount === undefined || Number(rewardAmount.amount) < 1) {
               return [...acc];
             }
 
@@ -260,6 +180,13 @@ const stakeAllV1: FastifyPluginAsync = async (fastify): Promise<void> => {
             };
           };
           const stdFee = simulatedStdFee ?? defaultStdFee();
+
+          // grantee account 불러오기
+          const { publicKey: granteePublicKey, privateKey: granteePrivateKey } =
+            await getAccount(
+              process.env.MNEMONIC as string,
+              chainInfo.bip44.coinType
+            );
 
           // signDoc 생성
           const sequence = isEthAccount(account)

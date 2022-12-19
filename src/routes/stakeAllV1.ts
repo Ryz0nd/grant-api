@@ -7,11 +7,7 @@ import {
 } from "@cosmjs/crypto";
 import { Secp256k1 } from "@cosmjs/crypto";
 import { type EncodeObject } from "@cosmjs/proto-signing";
-import {
-  assertIsDeliverTxSuccess,
-  DeliverTxResponse,
-  StdFee,
-} from "@cosmjs/stargate";
+import { StdFee } from "@cosmjs/stargate";
 import { MsgExec } from "@keplr-wallet/proto-types/cosmos/authz/v1beta1/tx";
 import { Dec } from "@keplr-wallet/unit";
 import type {
@@ -307,7 +303,15 @@ const stakeAllV1: FastifyPluginAsync = async (fastify): Promise<void> => {
           // tx broadcast
           const txResponse = await broadcastTx(protoSignedTx, chainInfo.rest);
 
-          assertIsDeliverTxSuccess(txResponse as unknown as DeliverTxResponse);
+          if (txResponse.code !== 0) {
+            return {
+              [chainInfo.chainId]: {
+                status: "error",
+                message: "Transaction broadcast failed",
+                error: txResponse,
+              },
+            };
+          }
           return {
             [chainInfo.chainId]: {
               status: "success",

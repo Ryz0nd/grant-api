@@ -22,7 +22,7 @@
     "@fastify/sensible": "^5.1.1",
     "@keplr-wallet/cosmos": "^0.11.26",
     "@keplr-wallet/unit": "^0.11.26",
-    "@many-things/cosmos-query": "^0.1.25",
+    "@many-things/cosmos-query": "^0.1.26",
     "axios": "^1.2.1",
     "cosmjs-types": "^0.6.0",
     "fastify": "^4.9.2",

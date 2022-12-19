@@ -5,6 +5,7 @@ import type {
   Account,
   EthereumAccount,
 } from "@many-things/cosmos-query/dist/apis/cosmos/auth/types";
+import { isEthAccount } from "@many-things/cosmos-query/dist/utils";
 import axios from "axios";
 import type { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
@@ -15,12 +16,12 @@ import {
   TxBody,
   TxRaw,
 } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { type CustomChainInfo } from "../constants/embedChainInfos";
+
+import type { CustomChainInfo } from "../constants/embedChainInfos";
 import {
-  DefaultGasPriceStep,
   DEFAULT_GAS_ADJUSTMENT_NUM,
+  DefaultGasPriceStep,
 } from "../constants/gas";
-import { isEthAccount } from "./isEthAccount";
 
 export const getSimulatedStdFee = async ({
   chainInfo,

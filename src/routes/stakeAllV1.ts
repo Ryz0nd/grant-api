@@ -8,6 +8,7 @@ import type {
 } from "@many-things/cosmos-query";
 import type { Grant } from "@many-things/cosmos-query/dist/apis/cosmos/authz/types";
 import type { TxResponse } from "@many-things/cosmos-query/dist/apis/cosmos/tx/types";
+import { isEthAccount } from "@many-things/cosmos-query/dist/utils";
 import axios from "axios";
 import {
   AuthorizationType,
@@ -25,9 +26,7 @@ import { broadcastTx } from "../utils/broadcastTx";
 import { getAccount } from "../utils/getAccount";
 import { getBech32Address } from "../utils/getBech32Address";
 import { getSimulatedStdFee } from "../utils/getStdFee";
-import { isEthAccount } from "../utils/isEthAccount";
 import { signDirect } from "../utils/signDirect";
-
 interface StakingAuthorizationGrant {
   authorization: {
     "@type": string;
@@ -105,7 +104,7 @@ const stakeAllV1: FastifyPluginAsync = async (fastify): Promise<void> => {
               chainInfo.bech32Config.bech32PrefixAccAddr
             ));
 
-          // grantee 정보 가져오기
+          // grantee account 불러오기
           const { publicKey: granteePublicKey, privateKey: granteePrivateKey } =
             await getAccount(
               process.env.MNEMONIC as string,
